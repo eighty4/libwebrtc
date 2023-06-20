@@ -1,0 +1,30 @@
+name: libwebrtc
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: restore webrtc src
+        id: cache-webrtc-src-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: src
+          key: ${{ runner.os }}-webrtc-src
+      - name: build
+        run: |
+          python install_depot_tools.py
+          export PATH="$PWD/depot_tools:$PATH"
+          python sync_webrtc.py
+      - name: cache webrtc src
+        id: cache-webrtc-src-save
+        uses: actions/cache/save@v3
+        with:
+          path: src
+          key: ${{ steps.cache-webrtc-src-restore.outputs.cache-primary-key }}
