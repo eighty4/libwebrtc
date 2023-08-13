@@ -6,22 +6,38 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: libwebrtc-workflow
+  cancel-in-progress: true
+
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+      - name: restore depot tools
+        id: cache-depot-tools-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: depot_tools
+          key: depot-tools
       - name: restore webrtc src
         id: cache-webrtc-src-restore
         uses: actions/cache/restore@v3
         with:
           path: src
           key: ${{ runner.os }}-webrtc-src
-      - name: build
+      - name: sync repositories
         run: |
-          python install_depot_tools.py
+          python depot_tools.py
           export PATH="$PWD/depot_tools:$PATH"
           python sync_webrtc.py
+      - name: cache depot tools
+        id: cache-depot-tools-save
+        uses: actions/cache/save@v3
+        with:
+          path: src
+          key: ${{ steps.cache-depot-tools-restore.outputs.cache-primary-key }}
       - name: cache webrtc src
         id: cache-webrtc-src-save
         uses: actions/cache/save@v3

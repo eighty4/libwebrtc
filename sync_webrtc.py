@@ -2,9 +2,7 @@ import os
 import subprocess
 from sys import platform
 
-is_update = os.path.isdir('src')
-
-if not is_update:
+if not os.path.isdir('src'):
     subprocess.call(['gclient', 'sync'])
     if platform == 'linux':
         subprocess.call(['build/install-build-deps.sh'], cwd='src')
